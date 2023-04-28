@@ -87,7 +87,7 @@ stages:
   - deployment: Deploy
     pool:
       vmImage: 'ubuntu-20.04'
-    environment: desarrollo
+    environment: dev
     variables:
     - group: Release
     strategy:
@@ -99,7 +99,7 @@ stages:
           - task: AzureWebApp@1
             displayName: 'Azure App Service Deploy: website'
             inputs:
-              azureSubscription: '25384475-2371-4642-b4d7-a182228f927e'
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
               appName: '$(WebAppNameDev)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
               appType:  webAppLinux
@@ -112,7 +112,7 @@ stages:
   - deployment: Deploy
     pool:
       vmImage: 'ubuntu-20.04'
-    environment: prueba
+    environment: test
     variables:
     - group: 'Release'
     strategy:
@@ -124,7 +124,31 @@ stages:
           - task: AzureWebApp@1
             displayName: 'Azure App Service Deploy: website'
             inputs:
-              azureSubscription: '25384475-2371-4642-b4d7-a182228f927e' 
-              appName: '$(WebAppNameDev)'
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              appName: '$(WebAppNameTest)'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+              appType:  webAppLinux
+
+- stage: 'Staging'
+  displayName: 'Deploy to the staging environment'
+  dependsOn: Test
+  jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: 'ubuntu-20.04'
+    environment: staging
+    variables:
+    - group: 'Release'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+          - task: AzureWebApp@1
+            displayName: 'Azure App Service Deploy: website'
+            inputs:
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              appName: '$(WebAppNameStaging)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
               appType:  webAppLinux
