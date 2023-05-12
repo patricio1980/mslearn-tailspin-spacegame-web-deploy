@@ -1,6 +1,6 @@
 trigger:
-- '*'
-
+  - '*'
+  
 variables:
   buildConfiguration: 'Release'
 
@@ -86,6 +86,7 @@ stages:
             inputs:
               azureSubscription: 'Resource Manager - Tailspin - Space Game'
               appName: '$(WebAppNameDev)'
+              appType: webAppLinux
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
 
 - stage: 'Test'
@@ -109,6 +110,7 @@ stages:
             inputs:
               azureSubscription: 'Resource Manager - Tailspin - Space Game'
               appName: '$(WebAppNameTest)'
+              appType: webAppLinux
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
 
 - stage: 'Staging'
@@ -131,5 +133,18 @@ stages:
             displayName: 'Azure App Service Deploy: website'
             inputs:
               azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              deployToSlotOrASE: 'true'
+              resourceGroupName: 'tailspin-space-game-rg'
+              slotName: 'swap'
               appName: '$(WebAppNameStaging)'
+              appType: webAppLinux
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+          - task: AzureAppServiceManage@0
+            displayName: 'Swap deployment slots'
+            inputs:
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              resourceGroupName: 'tailspin-space-game-rg'
+              webAppName: '$(WebAppNameStaging)'
+              sourceSlot: 'swap'
+              targetSlot: 'production'
+              action: 'Swap Slots'
